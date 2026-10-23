@@ -81,7 +81,8 @@ fun HomeSection(ui: TvUi) {
     Box(Modifier.fillMaxSize()) {
         Pivot(120f) {
             Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(end = 96.dp)) {
-                ClockBlock()
+                val hero = if (cfg.sports.heroTakeover) sports.live.firstOrNull { it.favorite } else null
+                if (hero != null) HeroGame(ui, hero) else ClockBlock()
                 Spacer(Modifier.height(36.dp))
 
                 if (cw.isNotEmpty()) {
@@ -397,4 +398,52 @@ object Favorites {
         }
     }
     private fun save(l: List<String>) = HearthApp.get().configStore.update { it.copy(favorites = l) }
+}
+
+/** Hero takeover: a favourite team's live game replaces the clock at the top of Home. */
+@Composable
+private fun HeroGame(ui: TvUi, g: Game) {
+    val now = rememberNow()
+    Column(Modifier.fillMaxWidth().padding(top = 60.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            T(now.format(DateTimeFormatter.ofPattern("h:mm a")), 26.sp, FontWeight.Light, color = Paper.copy(alpha = .8f))
+            Spacer(Modifier.width(18.dp))
+            com.amosley.hearth.tv.ui.LiveBadge()
+            Spacer(Modifier.width(14.dp))
+            T("${g.leagueName} · ${g.detail}", 24.sp, color = Paper.copy(alpha = .8f))
+        }
+        Spacer(Modifier.height(22.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            HeroTeam(g.away)
+            Spacer(Modifier.width(36.dp))
+            T(g.away.score, 120.sp, FontWeight.Light, family = Hearth.Newsreader, shadow = true)
+            T("  –  ", 60.sp, FontWeight.Light, color = Paper.copy(alpha = .5f), family = Hearth.Newsreader)
+            T(g.home.score, 120.sp, FontWeight.Light, family = Hearth.Newsreader, shadow = true)
+            Spacer(Modifier.width(36.dp))
+            HeroTeam(g.home)
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (g.situation.isNotBlank()) T(g.situation, 26.sp, color = Paper.copy(alpha = .85f))
+            if (g.highlight.isNotBlank()) { T("  •  ", 26.sp, color = Paper.copy(alpha = .5f)); T(g.highlight, 26.sp, color = Hearth.Amber) }
+            Spacer(Modifier.width(28.dp))
+            val shape = RoundedCornerShape(999.dp)
+            Row(Modifier.tvFocus(shape, onClick = { openGame(ui, g) }, onFocus = { ui.hue = 215f; ui.art = null }, shadow = false)
+                .background(Paper, shape).padding(horizontal = 26.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Glyph("play", 20.dp, Hearth.Ink); Spacer(Modifier.width(10.dp))
+                T(if (g.network.isNotBlank()) "Watch on ${g.network}" else "Watch", 22.sp, FontWeight.Medium, color = Hearth.Ink)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroTeam(t: com.amosley.hearth.shared.protocol.TeamScore) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(150.dp)) {
+        Box(Modifier.size(96.dp).background(com.amosley.hearth.tv.ui.parseHex(t.color), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+            if (t.logo != null) AsyncImage(t.logo, t.abbr, Modifier.size(70.dp)) else T(t.abbr, 28.sp, FontWeight.Bold)
+        }
+        Spacer(Modifier.height(10.dp))
+        T(t.name, 22.sp, maxLines = 1)
+    }
 }

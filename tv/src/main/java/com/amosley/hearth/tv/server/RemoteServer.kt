@@ -135,6 +135,7 @@ class RemoteServer(private val app: HearthApp) : NanoWSD(Protocol.PORT) {
                 val code = (0 until 6).joinToString("") { random.nextInt(10).toString() }
                 pairCode = code; pairCodeAt = System.currentTimeMillis(); pairAttempts = 0
                 app.emit(UiEvent.PairCode(code, c.name))
+                if (com.amosley.hearth.tv.BuildConfig.DEBUG) Log.i("HearthPair", "code=$code") // used by the CI smoke test
                 c.reply(Protocol.msg("pair_pending", "tvName" to app.config.value.tvName))
                 return
             }

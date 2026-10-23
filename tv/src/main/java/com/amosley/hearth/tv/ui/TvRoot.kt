@@ -99,6 +99,7 @@ fun TvRoot(ui: TvUi) {
                 UiEvent.DismissDoorbell -> ui.doorbell = null
                 UiEvent.ShowInputs -> ui.inputsPicker = true
                 UiEvent.RequestPin -> {}
+                UiEvent.ShowProfiles -> ui.profilePicker = true
             }
         }
     }

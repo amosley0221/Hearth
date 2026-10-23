@@ -23,7 +23,7 @@ jobs:
             target: android-tv
             api: 33
             arch: x86
-            profile: ""
+            profile: tv_1080p
           - name: phone
             target: google_apis
             api: 34

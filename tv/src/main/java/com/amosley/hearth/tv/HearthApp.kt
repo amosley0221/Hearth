@@ -34,6 +34,7 @@ sealed interface UiEvent {
     data object DismissDoorbell : UiEvent
     data object ShowInputs : UiEvent
     data object RequestPin : UiEvent
+    data object ShowProfiles : UiEvent
 }
 
 class HearthApp : Application() {
@@ -91,6 +92,16 @@ class HearthApp : Application() {
         doorbell.start()
         updater.start()
         input.start()
+        // "Who's watching?" when the TV wakes up.
+        registerReceiver(object : android.content.BroadcastReceiver() {
+            override fun onReceive(c: android.content.Context, i: android.content.Intent) {
+                val cfg = config.value
+                if (cfg.askProfileOnWake && cfg.kids.enabled && profiles.locked.value == null) {
+                    input.goHome()
+                    emit(UiEvent.ShowProfiles)
+                }
+            }
+        }, android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_ON))
     }
 
     companion object {
