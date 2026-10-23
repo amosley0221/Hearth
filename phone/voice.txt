@@ -1,0 +1,5 @@
+{"query":"volume 10","reply":"Volume 10"}
+{"query":"open settings","reply":"Opening Settings"}
+{"query":"movie night","reply":"Running Movie Night"}
+{"query":"end movie night","reply":"Movie Night ended"}
+{"query":"play breaking bad","reply":"Searching for Breaking Bad"}
