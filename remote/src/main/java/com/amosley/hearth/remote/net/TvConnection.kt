@@ -61,7 +61,8 @@ class TvConnection(private val context: Context, private val scope: CoroutineSco
     private var loop: Job? = null
 
     fun start() {
-        host?.let { connect(it) }
+        // Don't interrupt a live connection or a pairing in progress.
+        if (_status.value !in setOf("connected", "needs_pairing", "code_requested") || loop == null) host?.let { connect(it) }
         atv.pairedHost?.let { atv.connect(it) }
     }
 

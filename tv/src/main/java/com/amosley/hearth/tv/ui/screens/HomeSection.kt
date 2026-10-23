@@ -74,7 +74,8 @@ fun HomeSection(ui: TvUi) {
 
     LaunchedEffect(ui.homeSerial) {
         scroll.scrollTo(0)
-        try { first.requestFocus() } catch (_: Exception) {}
+        // Tiles in lazy rows attach a frame or two after first composition.
+        repeat(20) { try { first.requestFocus(); return@LaunchedEffect } catch (_: Exception) { kotlinx.coroutines.delay(100) } }
     }
 
     Box(Modifier.fillMaxSize()) {

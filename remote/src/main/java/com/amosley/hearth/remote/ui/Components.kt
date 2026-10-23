@@ -25,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -95,7 +96,7 @@ private fun Modifier.pressImplC(onPress: () -> Unit, repeat: Boolean, onLongPres
 }
 
 private fun Modifier.pressImpl(onPress: () -> Unit, repeat: Boolean, onLongPress: (() -> Unit)?): Modifier =
-    androidx.compose.ui.composed { pressImplC(onPress, repeat, onLongPress) }
+    this.composed { pressImplC(onPress, repeat, onLongPress) }
 
 @Composable
 fun GlassButton(label: String, modifier: Modifier = Modifier, radius: Dp = 20.dp, paper: Boolean = false, size: TextUnit = 15.sp,

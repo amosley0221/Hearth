@@ -63,7 +63,9 @@ fun KidHome(ui: TvUi) {
     val approved = remember(cfg.kids.approvedApps, apps) { apps.filter { it.pkg in cfg.kids.approvedApps } }
     val keep = remember(cw, cfg.kids.approvedApps) { cw.filter { it.pkg in cfg.kids.approvedApps } }
     val first = remember { FocusRequester() }
-    LaunchedEffect(ui.homeSerial) { try { first.requestFocus() } catch (_: Exception) {} }
+    LaunchedEffect(ui.homeSerial) {
+        repeat(20) { try { first.requestFocus(); return@LaunchedEffect } catch (_: Exception) { kotlinx.coroutines.delay(100) } }
+    }
     val left = remember(used, now) { app.profiles.minutesLeft() }
     val greeting = when (now.hour) { in 5..11 -> "Good morning!"; in 12..16 -> "Good afternoon!"; else -> "Good evening!" }
 
