@@ -94,7 +94,7 @@ function setTab(id) { S.tab = id; localStorage.setItem('hearthTab', id); if (id 
 function leftColumn(st) {
   const np = st.nowPlaying;
   const title = np && np.title ? np.title : (st.foregroundLabel || 'Home');
-  const sub = np && np.title ? [np.appLabel, np.subtitle, remaining(np)].filter(Boolean).join(' · ') : (st.foregroundPkg ? 'On screen' : '');
+  const sub = np && np.title ? [...new Set([np.appLabel, np.subtitle, remaining(np)].filter(Boolean))].join(' · ') : (st.foregroundPkg ? 'On screen' : '');
   const favs = (st.apps || []).filter(a => a.favorite).slice(0, 12);
   return h('div', { class: 'left' },
     h('div', { class: 'eyebrow' }, h('span', { class: 'dot' + (S.connected ? '' : ' amber') }), st.tvName || 'TV'),
@@ -199,7 +199,7 @@ function scoreCard(g) {
     h('div', { class: 'eyebrow' }, h('span', { class: 'dot red' }), `Live · ${g.leagueName}${g.network ? ' / ' + g.network : ''}`),
     h('div', { class: 'teams' },
       h('div', { class: 'team' }, teamDot(g.away), g.away.name),
-      h('div', { style: { textAlign: 'center' } }, h('div', { class: 'num' }, `${g.away.score}  ${g.home.score}`), h('div', { class: 'meta' }, g.detail)),
+      h('div', { style: { textAlign: 'center' } }, h('div', { class: 'num' }, g.away.score, h('span', { class: 'meta', style: { fontSize: '20px', margin: '0 14px' } }, 'vs'), g.home.score), h('div', { class: 'meta' }, g.detail)),
       h('div', { class: 'team' }, teamDot(g.home), g.home.name)),
     (g.situation || g.highlight) && h('div', { class: 'foot' }, g.situation, g.highlight ? h('span', null, ' • ', h('span', { class: 'amber' }, g.highlight)) : null));
 }
@@ -252,7 +252,7 @@ function homeTab(st) {
   const dis = hs.connected ? '' : ' disabled';
   const call = (service, entity_id, data) => send({ t: 'ha_call', service, entity_id, data });
   const lightsOn = hs.lightsOn > 0;
-  const camImg = hs.cameraEntity ? h('img', { id: 'camimg', src: camUrl(hs.cameraEntity) }) : null;
+  const camImg = hs.cameraEntity ? h('img', { id: 'camimg', src: camUrl(hs.cameraEntity), onerror: e => { e.target.style.visibility = 'hidden'; }, onload: e => { e.target.style.visibility = ''; } }) : null;
   const spk = h('input', { type: 'range', class: 'slider', min: 0, max: 100, value: hs.speakerVolume, style: { '--p': hs.speakerVolume + '%' } });
   spk.addEventListener('change', () => call('media_player.volume_set', hs.speakerEntity, { volume_level: spk.value / 100 }));
   return [

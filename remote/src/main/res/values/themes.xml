@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.HearthRemote" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF07080C</item>
+        <item name="android:colorBackground">#FF07080C</item>
+    </style>
+</resources>
