@@ -1,12 +1,14 @@
 name: Release
 
-# Start a release either way (after adding a "## v1.2.0" section to CHANGELOG.md):
-#  - GitHub › Actions › Release › Run workflow, enter v1.2.0 (the tag is created on the chosen branch), or
-#  - push a tag like v1.2.0.
-# Builds both APKs signed with the release key and publishes a GitHub Release
-# with the APKs attached and the changelog section as release notes.
+# Three ways to publish a release (the notes come from that version's section in CHANGELOG.md):
+#  - Automatic: push a commit to main that adds a new "## vX.Y.Z" section at the top of CHANGELOG.md.
+#  - GitHub › Actions › Release › Run workflow, enter vX.Y.Z (the tag is created for you).
+#  - Push a tag vX.Y.Z.
+# Builds both APKs signed with the release key and publishes a GitHub Release with the APKs attached.
 on:
   push:
+    branches: [main]
+    paths: ["CHANGELOG.md"]
     tags: ["v*"]
   workflow_dispatch:
     inputs:
@@ -17,22 +19,63 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  release:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      version: ${{ steps.v.outputs.version }}
+      commit: ${{ steps.v.outputs.commit }}
+      skip: ${{ steps.v.outputs.skip }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Resolve version
         id: v
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            # Push to main: release the newest version in CHANGELOG.md if it isn't released yet.
+            TAG=$(grep -m1 -oE '^## v?[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/^## v?/v/')
+          fi
+          case "$TAG" in v*) ;; *) TAG="v$TAG" ;; esac
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$TAG' isn't a version like v1.2.3"; exit 1
+          fi
+          SKIP=false
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            git checkout -q "$TAG"
+            if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_type }}" = "branch" ]; then
+              echo "$TAG is already released; nothing to do."; SKIP=true
+            fi
+          else
+            # New versions must be higher than every released one, or Android won't install them as updates.
+            LATEST=$(git tag -l 'v*' | sort -V | tail -1)
+            if [ -n "$LATEST" ] && [ "$(printf '%s\n%s\n' "$LATEST" "$TAG" | sort -V | tail -1)" != "$TAG" ]; then
+              echo "::error::$TAG is not newer than $LATEST"; exit 1
+            fi
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: prepare
+    if: needs.prepare.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v5
-      - name: Use the existing tag if there is one
-        run: |
-          git fetch --tags --quiet
-          if git rev-parse -q --verify "refs/tags/${{ steps.v.outputs.tag }}" >/dev/null; then git checkout -q "${{ steps.v.outputs.tag }}"; fi
-          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -50,7 +93,7 @@ jobs:
           echo "HEARTH_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
       - name: Build signed release APKs
         env:
-          HEARTH_VERSION: ${{ steps.v.outputs.version }}
+          HEARTH_VERSION: ${{ needs.prepare.outputs.version }}
           HEARTH_KEYSTORE_PASSWORD: ${{ secrets.HEARTH_KEYSTORE_PASSWORD }}
           HEARTH_KEY_ALIAS: ${{ secrets.HEARTH_KEY_ALIAS }}
           HEARTH_KEY_PASSWORD: ${{ secrets.HEARTH_KEY_PASSWORD }}
@@ -61,20 +104,20 @@ jobs:
       - name: Collect APKs
         run: |
           mkdir dist
-          cp tv/build/outputs/apk/release/tv-release.apk "dist/hearth-tv-${{ steps.v.outputs.version }}.apk"
-          cp remote/build/outputs/apk/release/remote-release.apk "dist/hearth-remote-${{ steps.v.outputs.version }}.apk"
+          cp tv/build/outputs/apk/release/tv-release.apk "dist/hearth-tv-${{ needs.prepare.outputs.version }}.apk"
+          cp remote/build/outputs/apk/release/remote-release.apk "dist/hearth-remote-${{ needs.prepare.outputs.version }}.apk"
           # Fail if the APKs aren't signed with the release key
           for f in dist/*.apk; do
             "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)/apksigner verify --print-certs "$f" | grep -q "CN=Hearth" || { echo "::error::$f not signed with release key"; exit 1; }
           done
           ls -la dist
       - name: Release notes
-        run: .github/scripts/release-notes.sh "${{ steps.v.outputs.version }}" > notes.md && cat notes.md
+        run: .github/scripts/release-notes.sh "${{ needs.prepare.outputs.version }}" > notes.md && cat notes.md
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.v.outputs.tag }}
-          target_commitish: ${{ env.commit }}
-          name: Hearth ${{ steps.v.outputs.tag }}
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          target_commitish: ${{ needs.prepare.outputs.commit }}
+          name: Hearth ${{ needs.prepare.outputs.tag }}
           body_path: notes.md
           files: dist/*.apk
           fail_on_unmatched_files: true

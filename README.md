@@ -71,15 +71,18 @@ See [docs/SETUP.md](docs/SETUP.md) for details, permissions and troubleshooting.
 
 ## Releasing a new version
 
-1. Add a section to `CHANGELOG.md`, for example:
-   ```
-   ## v1.1.0
-   - What changed
-   ```
-2. On GitHub go to **Actions › Release › Run workflow**, type the version (for example `v1.1.0`) and run it. Pushing a tag `v1.1.0` works too.
-3. The **Release** workflow builds both APKs, signs them with the release key, and publishes a GitHub Release with the APKs and that changelog section as the notes. Obtainium and the in-app updaters pick it up from there.
+Releases are automatic. Add a new section at the **top** of `CHANGELOG.md` and push it to `main`:
 
-The version code comes from the tag (`major*1000000 + minor*1000 + patch`), so always increase the version.
+```
+## v1.1.0
+- What changed
+```
+
+The **Release** workflow sees the new version, builds both APKs, signs them with the release key, creates the `v1.1.0` tag and publishes a GitHub Release with the APKs and that section as the notes. Obtainium and the in-app updaters pick it up from there. Pushes that don't add a new version publish nothing.
+
+You can also start a release manually: **Actions › Release › Run workflow** and enter the version, or push a tag `vX.Y.Z`.
+
+The version code comes from the version number (`major*1000000 + minor*1000 + patch`). The workflow refuses a version that isn't higher than the last release, so updates always install over the existing apps.
 
 ### Signing key (one-time)
 
