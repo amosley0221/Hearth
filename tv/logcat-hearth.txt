@@ -1,0 +1,27 @@
+10-23 04:22:06.918  2028  2028 I Finsky  : [2] kwn.n(8): Invalidating cached PackageState for com.amosley.hearth.tv.debug
+10-23 04:22:07.041  2028  2804 I Finsky  : [143] euw.accept(35): Asset module storage cleared for package com.amosley.hearth.tv.debug.
+10-23 04:22:07.053   527  1335 W BackupTransportManager: Package com.amosley.hearth.tv.debug enabled setting: 0
+10-23 04:22:07.077  1069  2269 I FontLog : Package com.amosley.hearth.tv.debug has no metadata [CONTEXT service_id=132 ]
+10-23 04:22:07.094  2028  2028 I Finsky  : [2] kwn.n(8): Invalidating cached PackageState for com.amosley.hearth.tv.debug
+10-23 04:22:07.466   527  2444 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.amosley.hearth.tv.debug/com.amosley.hearth.tv.MainActivity} from uid 2000
+10-23 04:22:07.605   527   555 I ActivityManager: Start proc 2839:com.amosley.hearth.tv.debug/u0a93 for next-top-activity {com.amosley.hearth.tv.debug/com.amosley.hearth.tv.MainActivity}
+10-23 04:22:07.625   527   542 D CoreBackPreview: Window{7188eaa u0 Splash Screen com.amosley.hearth.tv.debug}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@e54de38, mPriority=0}
+10-23 04:22:07.845  2839  2839 W ziparchive: Unable to open '/data/app/~~CtFigmaKNBsPiOT1xIMa7Q==/com.amosley.hearth.tv.debug-j2nfbGMhqABYt1d564W-mA==/base.dm': No such file or directory
+10-23 04:22:07.845  2839  2839 W ziparchive: Unable to open '/data/app/~~CtFigmaKNBsPiOT1xIMa7Q==/com.amosley.hearth.tv.debug-j2nfbGMhqABYt1d564W-mA==/base.dm': No such file or directory
+10-23 04:22:08.296  2839  2839 D nativeloader: Configuring classloader-namespace for other apk /data/app/~~CtFigmaKNBsPiOT1xIMa7Q==/com.amosley.hearth.tv.debug-j2nfbGMhqABYt1d564W-mA==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~CtFigmaKNBsPiOT1xIMa7Q==/com.amosley.hearth.tv.debug-j2nfbGMhqABYt1d564W-mA==/lib/x86:/data/app/~~CtFigmaKNBsPiOT1xIMa7Q==/com.amosley.hearth.tv.debug-j2nfbGMhqABYt1d564W-mA==/base.apk!/lib/x86, permitted_path=/data:/mnt/expand:/data/user/0/com.amosley.hearth.tv.debug
+10-23 04:22:08.306  2839  2839 V GraphicsEnvironment: ANGLE Developer option for 'com.amosley.hearth.tv.debug' set to: 'default'
+10-23 04:22:08.306  2839  2839 V GraphicsEnvironment: ANGLE GameManagerService for com.amosley.hearth.tv.debug: false
+10-23 04:22:08.535  2839  2868 E ActivityThread: Failed to find provider info for com.amosley.medialibrary
+10-23 04:22:08.629  2839  2868 E ActivityThread: Failed to find provider info for com.amosley.medialibrary
+10-23 04:22:08.792  2839  2870 E ActivityThread: Failed to find provider info for com.amosley.medialibrary
+10-23 04:22:08.813   527   770 D CoreBackPreview: Window{1456ee4 u0 com.amosley.hearth.tv.debug/com.amosley.hearth.tv.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@f5c9550, mPriority=0}
+10-23 04:22:09.035  2839  2870 E ActivityThread: Failed to find provider info for com.amosley.medialibrary
+10-23 04:22:12.470   527   543 W ziparchive: Unable to open '/data/app/~~CtFigmaKNBsPiOT1xIMa7Q==/com.amosley.hearth.tv.debug-j2nfbGMhqABYt1d564W-mA==/base.dm': No such file or directory
+10-23 04:22:12.472   527   543 I ActivityTaskManager: Displayed com.amosley.hearth.tv.debug/com.amosley.hearth.tv.MainActivity: +5s1ms
+10-23 04:22:12.599   527   998 W InputManager-JNI: Input channel object '7188eaa Splash Screen com.amosley.hearth.tv.debug (client)' was disposed without first being removed with the input manager!
+10-23 04:22:14.716  2839  3106 D ProfileInstaller: Installing profile for com.amosley.hearth.tv.debug
+10-23 04:23:06.705  1288  3712 I katniss_interactor_UiActionExecutor: Foreground app = com.amosley.hearth.tv.debug
+10-23 04:23:07.279  1288  3712 I katniss_interactor_UiActionExecutor: Foreground app = com.amosley.hearth.tv.debug
+10-23 04:23:08.630  2839  2868 E ActivityThread: Failed to find provider info for com.amosley.medialibrary
+10-23 04:23:08.636  2839  2868 E ActivityThread: Failed to find provider info for com.amosley.medialibrary
+10-23 04:23:09.054  2028  2166 I Finsky  : [47] jms.c(20): ItemStore: Not cached: com.amosley.hearth.tv.debug
