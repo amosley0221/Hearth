@@ -1,0 +1,71 @@
+name: Release
+
+# Push a tag like v1.2.0 (after adding a "## v1.2.0" section to CHANGELOG.md).
+# Builds both APKs signed with the release key and publishes a GitHub Release
+# with the APKs attached and the changelog section as release notes.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v1.2.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version
+        id: v
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.v.outputs.tag }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Restore release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.HEARTH_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::HEARTH_KEYSTORE_BASE64 secret is missing. Releases must be signed with the fixed release key or updates will not install over existing apps."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "HEARTH_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+      - name: Build signed release APKs
+        env:
+          HEARTH_VERSION: ${{ steps.v.outputs.version }}
+          HEARTH_KEYSTORE_PASSWORD: ${{ secrets.HEARTH_KEYSTORE_PASSWORD }}
+          HEARTH_KEY_ALIAS: ${{ secrets.HEARTH_KEY_ALIAS }}
+          HEARTH_KEY_PASSWORD: ${{ secrets.HEARTH_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease
+      - name: Collect APKs
+        run: |
+          mkdir dist
+          cp tv/build/outputs/apk/release/tv-release.apk "dist/hearth-tv-${{ steps.v.outputs.version }}.apk"
+          cp remote/build/outputs/apk/release/remote-release.apk "dist/hearth-remote-${{ steps.v.outputs.version }}.apk"
+          # Fail if the APKs aren't signed with the release key
+          for f in dist/*.apk; do
+            "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)/apksigner verify --print-certs "$f" | grep -q "CN=Hearth" || { echo "::error::$f not signed with release key"; exit 1; }
+          done
+          ls -la dist
+      - name: Release notes
+        run: .github/scripts/release-notes.sh "${{ steps.v.outputs.version }}" > notes.md && cat notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          name: Hearth ${{ steps.v.outputs.tag }}
+          body_path: notes.md
+          files: dist/*.apk
+          fail_on_unmatched_files: true

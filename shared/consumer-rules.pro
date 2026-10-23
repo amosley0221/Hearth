@@ -1,0 +1,7 @@
+-keepattributes *Annotation*, InnerClasses
+-keep,includedescriptorclasses class com.amosley.hearth.**$$serializer { *; }
+-keepclassmembers class com.amosley.hearth.** { *** Companion; }
+-keepclasseswithmembers class com.amosley.hearth.** { kotlinx.serialization.KSerializer serializer(...); }
+-dontwarn org.bouncycastle.**
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**
