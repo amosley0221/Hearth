@@ -17,7 +17,7 @@ android {
         targetSdk = 34
         versionCode = extra["hearthVersionCode"] as Int
         versionName = extra["hearthVersionName"] as String
-        buildConfigField("String", "GITHUB_REPO", "\"amosley0221/hearth\"")
+        buildConfigField("String", "GITHUB_REPO", "\"amosley0221/Hearth\"")
     }
 
     // One fixed release key (from CI secrets) signs every release, so new
@@ -51,6 +51,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    packaging {
+        resources.excludes += setOf(
+            "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+            "META-INF/DEPENDENCIES",
+            "META-INF/LICENSE*",
+            "META-INF/NOTICE*",
+            "META-INF/INDEX.LIST",
+        )
+    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -68,4 +77,5 @@ dependencies {
     implementation(libs.nanohttpd.websocket)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.savedstate)
+    implementation(libs.dadb)
 }

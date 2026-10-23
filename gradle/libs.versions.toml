@@ -10,6 +10,7 @@ okhttp = "4.12.0"
 coil = "2.7.0"
 nanohttpd = "2.3.1"
 bouncycastle = "1.79"
+dadb = "1.2.10"
 coreKtx = "1.15.0"
 
 [libraries]
@@ -33,6 +34,7 @@ coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 nanohttpd = { module = "org.nanohttpd:nanohttpd", version.ref = "nanohttpd" }
 nanohttpd-websocket = { module = "org.nanohttpd:nanohttpd-websocket", version.ref = "nanohttpd" }
 bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+dadb = { module = "dev.mobile:dadb", version.ref = "dadb" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
