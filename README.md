@@ -76,10 +76,7 @@ See [docs/SETUP.md](docs/SETUP.md) for details, permissions and troubleshooting.
    ## v1.1.0
    - What changed
    ```
-2. Tag it and push the tag:
-   ```
-   git tag v1.1.0 && git push origin v1.1.0
-   ```
+2. On GitHub go to **Actions › Release › Run workflow**, type the version (for example `v1.1.0`) and run it. Pushing a tag `v1.1.0` works too.
 3. The **Release** workflow builds both APKs, signs them with the release key, and publishes a GitHub Release with the APKs and that changelog section as the notes. Obtainium and the in-app updaters pick it up from there.
 
 The version code comes from the tag (`major*1000000 + minor*1000 + patch`), so always increase the version.
