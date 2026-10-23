@@ -31,7 +31,7 @@ import kotlinx.coroutines.withContext
  * window (needs "display over other apps", granted during setup).
  */
 class DoorbellOverlay(private val app: HearthApp) {
-    private var view: ComposeView? = null
+    private var view: android.view.View? = null
     private var owner: OverlayOwner? = null
     private var hideJob: Job? = null
 
@@ -60,15 +60,17 @@ class DoorbellOverlay(private val app: HearthApp) {
         hide()
         val wm = app.getSystemService(WindowManager::class.java)
         val o = OverlayOwner().also { owner = it }
-        val v = object : ComposeView(app) {
+        val compose = ComposeView(app)
+        val v = object : android.widget.FrameLayout(app) {
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 if (event.keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) { hide(); return true }
                 return super.dispatchKeyEvent(event)
             }
         }
+        v.addView(compose)
         v.setViewTreeLifecycleOwner(o)
         v.setViewTreeSavedStateRegistryOwner(o)
-        v.setContent { DesignScale { DoorbellCard(camera = camera, overlay = true, onClose = { hide() }) } }
+        compose.setContent { DesignScale { DoorbellCard(camera = camera, overlay = true, onClose = { hide() }) } }
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,

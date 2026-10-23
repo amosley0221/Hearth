@@ -84,10 +84,9 @@ class AdbBridge(private val context: Context) {
     }
 
     suspend fun text(t: String): Boolean {
-        val escaped = t.replace("\\", "\\\\").replace("\"", "\\\"").replace("'", "\\'").replace(" ", "%s")
-            .replace("&", "\\&").replace("<", "\\<").replace(">", "\\>").replace(";", "\;").replace("|", "\\|")
-            .replace("(", "\\(").replace(")", "\\)").replace("$", "\\$").replace("`", "\\`")
-        return shell("input text \"$escaped\"") != null
+        // Single-quote for the shell; `input text` reads %s as a space.
+        val quoted = "'" + t.replace("'", "'\\''").replace(" ", "%s") + "'"
+        return shell("input text $quoted") != null
     }
 
     suspend fun install(apk: File): Boolean = withContext(Dispatchers.IO) {

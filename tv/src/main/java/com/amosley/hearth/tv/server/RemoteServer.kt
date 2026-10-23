@@ -169,8 +169,21 @@ class RemoteServer(private val app: HearthApp) : NanoWSD(Protocol.PORT) {
             "ha_call" -> {
                 val service = m.str("service") ?: listOfNotNull(m.str("domain"), m.str("svc")).joinToString(".")
                 val ent = m.str("entity_id")
-                if (service == "toggle" && ent != null) app.ha.toggle(ent)
-                else app.ha.call(service, listOfNotNull(ent), m["data"] as? JsonObject)
+                if (service == "toggle" && ent != null) { app.ha.toggle(ent); return }
+                // No entity: target the configured device for that domain. Never send an untargeted call
+                // (light.turn_on with no target would switch on every light in the house).
+                val h = app.config.value.home
+                val targets = if (!ent.isNullOrBlank()) listOf(ent) else when (service.substringBefore('.')) {
+                    "light" -> h.lights
+                    "climate" -> listOf(h.climate)
+                    "lock" -> listOf(h.lock)
+                    "media_player" -> listOf(h.speaker)
+                    "camera" -> listOf(h.camera)
+                    else -> emptyList()
+                }.filter { it.isNotBlank() }
+                if (targets.isNotEmpty() || service.startsWith("scene.") || service.startsWith("script.")) {
+                    app.ha.call(service, targets, m["data"] as? JsonObject)
+                }
             }
             "console" -> m.str("id")?.let { app.actions.wakeConsole(it, null, waitForIt = false) }
             "input" -> m.str("id")?.let { app.inputs.switchTo(it) }
