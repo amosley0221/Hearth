@@ -64,6 +64,24 @@ fun RemoteRoot() {
 
     BackHandler(showSettings || basicPairing) { showSettings = false; basicPairing = false }
 
+    // Voice: Android's speech recogniser, then the TV works out what to do with the words.
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val voiceLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) { res ->
+        val said = res.data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+        if (!said.isNullOrBlank()) tv.voice(said)
+    }
+    val startVoice: () -> Unit = {
+        val i = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Try \"play Breaking Bad\" or \"lights off\"")
+        try { voiceLauncher.launch(i) } catch (_: Exception) {
+            android.widget.Toast.makeText(ctx, "Voice typing isn't available on this phone", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    val voiceReq by app.voiceRequests.collectAsStateWithLifecycle()
+    LaunchedEffect(voiceReq) { if (voiceReq > 0) startVoice() }
+
     Box(Modifier.fillMaxSize().background(Ink)) {
         when {
             basicPairing -> BasicRemotePairing(tv) { basicPairing = false }
@@ -79,11 +97,11 @@ fun RemoteRoot() {
                     Box(Modifier.weight(1f)) {
                         if (wide) {
                             Row(Modifier.fillMaxSize()) {
-                                Box(Modifier.weight(1f).fillMaxHeight()) { Pane(tab, st, status, wide, kbSerial) { tab = "apps"; kbSerial++ } }
+                                Box(Modifier.weight(1f).fillMaxHeight()) { Pane(tab, st, status, wide, kbSerial, startVoice) { tab = "apps"; kbSerial++ } }
                                 Box(Modifier.width(1.dp).fillMaxHeight().background(Color.White.copy(alpha = .06f)))
-                                Box(Modifier.weight(1.15f).fillMaxHeight()) { UnfoldedPad(tv, st, status) { tab = "apps"; kbSerial++ } }
+                                Box(Modifier.weight(1.15f).fillMaxHeight()) { UnfoldedPad(tv, st, status, startVoice) { tab = "apps"; kbSerial++ } }
                             }
-                        } else Pane(tab, st, status, wide, kbSerial) { tab = "apps"; kbSerial++ }
+                        } else Pane(tab, st, status, wide, kbSerial, startVoice) { tab = "apps"; kbSerial++ }
                     }
                     TabBar(tab, wide) { tab = it }
                 }
@@ -94,13 +112,13 @@ fun RemoteRoot() {
 }
 
 @Composable
-private fun Pane(tab: String, st: com.amosley.hearth.shared.protocol.TvState?, status: String, wide: Boolean, kbSerial: Int, onKeyboard: () -> Unit) {
+private fun Pane(tab: String, st: com.amosley.hearth.shared.protocol.TvState?, status: String, wide: Boolean, kbSerial: Int, onVoice: () -> Unit, onKeyboard: () -> Unit) {
     val tv = RemoteApp.get().tv
     when (tab) {
         "now" -> NowScreen(tv, st, wide)
         "apps" -> AppsScreen(tv, st, kbSerial > 0)
         "home" -> HomeScreen(tv, st)
-        else -> if (wide) NowScreen(tv, st, wide) else RemoteScreen(tv, st, status, onKeyboard)
+        else -> if (wide) NowScreen(tv, st, wide) else RemoteScreen(tv, st, status, onVoice, onKeyboard)
     }
 }
 

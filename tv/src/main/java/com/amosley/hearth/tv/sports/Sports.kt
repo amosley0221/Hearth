@@ -255,6 +255,18 @@ class SportsRepository(private val configStore: ConfigStore, private val scope: 
     }
 
     companion object {
+        /** The installed app that carries a game: My Teams choice → network match → YouTube TV. */
+        fun appFor(app: com.amosley.hearth.tv.HearthApp, g: Game): String? {
+            val cfg = app.config.value.sports
+            val leagueKey = LEAGUES.values.firstOrNull { it.abbr == g.league }?.key
+            val installed = app.apps.apps.value.map { it.pkg }.toSet()
+            val net = g.network.lowercase()
+            return cfg.apps[leagueKey]?.takeIf { it in installed }
+                ?: NETWORK_APPS.entries.firstOrNull { net.contains(it.key) }?.value?.firstOrNull { it in installed }
+                ?: app.apps.apps.value.firstOrNull { net.isNotBlank() && it.label.lowercase().contains(net.split(" ").first()) }?.pkg
+                ?: "com.google.android.youtube.tvunplugged".takeIf { it in installed }
+        }
+
         const val BASE = "https://site.api.espn.com/apis/site/v2/sports"
         private val DATE_FMT = SimpleDateFormat("EEE, MMM d • h:mm a", Locale.US)
         val LEAGUES: Map<String, League> = listOf(

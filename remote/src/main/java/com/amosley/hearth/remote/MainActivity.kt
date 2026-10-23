@@ -15,7 +15,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
         setContent { RemoteRoot() }
+        handleShortcut(intent)
     }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        handleShortcut(intent)
+    }
+
+    private fun handleShortcut(i: android.content.Intent?) {
+        if (i?.action == ACTION_VOICE) RemoteApp.get().voiceRequests.value++
+    }
+
+    companion object { const val ACTION_VOICE = "com.amosley.hearth.remote.VOICE" }
 
     override fun onResume() {
         super.onResume()

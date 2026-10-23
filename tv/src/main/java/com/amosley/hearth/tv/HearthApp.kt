@@ -54,6 +54,7 @@ class HearthApp : Application() {
     lateinit var profiles: Profiles; private set
     lateinit var actions: Actions; private set
     lateinit var updater: TvUpdater; private set
+    lateinit var voice: com.amosley.hearth.tv.control.Voice; private set
     lateinit var state: StateHub; private set
     lateinit var server: RemoteServer; private set
     lateinit var doorbell: DoorbellOverlay; private set
@@ -79,6 +80,7 @@ class HearthApp : Application() {
         profiles = Profiles(this)
         actions = Actions(this)
         updater = TvUpdater(this)
+        voice = com.amosley.hearth.tv.control.Voice(this)
         state = StateHub(this)
         server = RemoteServer(this)
         doorbell = DoorbellOverlay(this)

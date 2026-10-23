@@ -130,7 +130,7 @@ fun TransportRow(tv: TvConnection, st: TvState?, height: Dp = 50.dp, power: Bool
 
 /** 5a · Remote, cover screen. */
 @Composable
-fun RemoteScreen(tv: TvConnection, st: TvState?, status: String, onKeyboard: () -> Unit) {
+fun RemoteScreen(tv: TvConnection, st: TvState?, status: String, onVoice: () -> Unit, onKeyboard: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Spacer(Modifier.height(6.dp))
         NowHeader(tv, st, status)
@@ -142,7 +142,7 @@ fun RemoteScreen(tv: TvConnection, st: TvState?, status: String, onKeyboard: () 
                 Row(Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     GlassButton("Back", Modifier.weight(1f).fillMaxHeight()) { tv.key(Keys.BACK) }
                     GlassButton("⌂", Modifier.weight(1f).fillMaxHeight(), size = 24.sp) { tv.key(Keys.HOME) }
-                    GlassButton("⌨", Modifier.weight(1f).fillMaxHeight(), size = 22.sp) { onKeyboard() }
+                    MicButton(Modifier.weight(1f).fillMaxHeight(), onVoice)
                 }
             }
             VolumeRail(tv, st, Modifier.fillMaxHeight())
@@ -154,7 +154,7 @@ fun RemoteScreen(tv: TvConnection, st: TvState?, status: String, onKeyboard: () 
 
 /** Right half of the unfolded layout (5e): everything from the cover remote. */
 @Composable
-fun UnfoldedPad(tv: TvConnection, st: TvState?, status: String, onKeyboard: () -> Unit) {
+fun UnfoldedPad(tv: TvConnection, st: TvState?, status: String, onVoice: () -> Unit, onKeyboard: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Dot(if (status == "connected") Hearth.Live else Hearth.Amber); Spacer(Modifier.width(8.dp))
@@ -169,9 +169,25 @@ fun UnfoldedPad(tv: TvConnection, st: TvState?, status: String, onKeyboard: () -
         Row(Modifier.fillMaxWidth().height(60.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             GlassButton("Back", Modifier.weight(1f).fillMaxHeight()) { tv.key(Keys.BACK) }
             GlassButton("Home", Modifier.weight(1f).fillMaxHeight()) { tv.key(Keys.HOME) }
-            GlassButton("Search", Modifier.weight(1f).fillMaxHeight()) { tv.key(Keys.SEARCH) }
+            GlassButton("Voice", Modifier.weight(1f).fillMaxHeight()) { onVoice() }
             GlassButton("Keyboard", Modifier.weight(1f).fillMaxHeight()) { onKeyboard() }
         }
         TransportRow(tv, st, 54.dp, power = true)
+    }
+}
+
+/** Microphone glyph button (design 5a: Back / Home / Mic). */
+@Composable
+fun MicButton(modifier: Modifier, onClick: () -> Unit) {
+    Box(modifier.press(onClick).glass(20.dp), contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.size(width = 18.dp, height = 28.dp)) {
+            val w = size.width; val h = size.height; val sw = 2.2.dp.toPx()
+            drawRoundRect(Paper, topLeft = androidx.compose.ui.geometry.Offset(w * .22f, 0f),
+                size = androidx.compose.ui.geometry.Size(w * .56f, h * .62f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * .28f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
+            drawArc(Paper, 0f, 180f, false, topLeft = androidx.compose.ui.geometry.Offset(0f, h * .3f),
+                size = androidx.compose.ui.geometry.Size(w, h * .5f), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
+            drawLine(Paper, androidx.compose.ui.geometry.Offset(w / 2, h * .8f), androidx.compose.ui.geometry.Offset(w / 2, h), sw)
+        }
     }
 }

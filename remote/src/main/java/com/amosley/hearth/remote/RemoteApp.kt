@@ -14,6 +14,8 @@ class RemoteApp : Application() {
     lateinit var atv: AtvRemote; private set
     lateinit var tv: TvConnection; private set
     lateinit var updater: GitHubUpdater; private set
+    /** Bumped by the "Voice" app shortcut; the UI starts listening when it changes. */
+    val voiceRequests = kotlinx.coroutines.flow.MutableStateFlow(0)
 
     override fun onCreate() {
         super.onCreate()

@@ -193,6 +193,12 @@ class RemoteServer(private val app: HearthApp) : NanoWSD(Protocol.PORT) {
             "volume_set" -> m["level"]?.jsonPrimitive?.intOrNull?.let { app.input.setVolume(it) }
             "section" -> m.str("id")?.let { app.input.goHome(); app.emit(UiEvent.OpenSection(it)) }
             "doorbell_dismiss" -> app.emit(UiEvent.DismissDoorbell)
+            "voice" -> m.str("text")?.let { text ->
+                app.scope.launch {
+                    val reply = app.voice.handle(text)
+                    c.reply(Protocol.msg("voice_result", "text" to text, "reply" to reply))
+                }
+            }
             "update" -> when (m.str("action")) {
                 "install" -> app.updater.install()
                 else -> app.updater.check()
@@ -247,6 +253,13 @@ class RemoteServer(private val app: HearthApp) : NanoWSD(Protocol.PORT) {
                 uri == "/api/leagues" -> json(buildJsonArray {
                     SportsRepository.LEAGUES.values.forEach { l -> add(buildJsonObject { put("key", l.key); put("name", l.name) }) }
                 }.toString())
+                // For Siri Shortcuts / automations: GET /api/voice?token=…&q=play%20breaking%20bad
+                uri == "/api/voice" -> {
+                    if (session.method == Method.POST) session.parseBody(HashMap())
+                    val q = session.parameters["q"]?.firstOrNull() ?: session.parameters["text"]?.firstOrNull() ?: ""
+                    val reply = runBlocking { app.voice.handle(q) }
+                    json(buildJsonObject { put("query", q); put("reply", reply) }.toString())
+                }
                 uri == "/api/update" -> json(Protocol.json.encodeToString(UpdateStatus.serializer(), app.updater.status.value))
                 else -> asset("web" + uri)
             }

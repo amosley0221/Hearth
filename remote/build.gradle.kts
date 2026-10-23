@@ -18,6 +18,7 @@ android {
         versionCode = extra["hearthVersionCode"] as Int
         versionName = extra["hearthVersionName"] as String
         buildConfigField("String", "GITHUB_REPO", "\"amosley0221/Hearth\"")
+        resValue("string", "package_name", "com.amosley.hearth.remote")
     }
 
     // One fixed release key (from CI secrets) signs every release, so new
@@ -44,6 +45,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            resValue("string", "package_name", "com.amosley.hearth.remote.debug")
         }
     }
     compileOptions {

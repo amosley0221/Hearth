@@ -225,14 +225,7 @@ private fun SportsStrip(ui: TvUi, live: List<Game>) {
 
 fun openGame(ui: TvUi, g: Game) {
     val app = HearthApp.get()
-    val cfg = app.config.value.sports
-    val leagueKey = com.amosley.hearth.tv.sports.SportsRepository.LEAGUES.values.firstOrNull { it.abbr == g.league }?.key
-    val installed = app.apps.apps.value.map { it.pkg }.toSet()
-    val net = g.network.lowercase()
-    val pkg = cfg.apps[leagueKey]?.takeIf { it in installed }
-        ?: com.amosley.hearth.tv.sports.SportsRepository.NETWORK_APPS.entries.firstOrNull { net.contains(it.key) }?.value?.firstOrNull { it in installed }
-        ?: app.apps.apps.value.firstOrNull { net.isNotBlank() && it.label.lowercase().contains(net.split(" ").first()) }?.pkg
-        ?: "com.google.android.youtube.tvunplugged".takeIf { it in installed }
+    val pkg = com.amosley.hearth.tv.sports.SportsRepository.appFor(app, g)
     if (pkg == null) { ui.toast("Set the app for ${g.leagueName} in My Teams"); return }
     ui.toast("Opens ${app.apps.labelFor(pkg)}")
     app.apps.launch(pkg)

@@ -143,6 +143,7 @@ class TvConnection(private val context: Context, private val scope: CoroutineSco
     }
 
     fun text(t: String, mode: String) = send("text", "text" to t, "mode" to mode)
+    fun voice(t: String) = send("voice", "text" to t)
     fun launch(pkg: String) = send("launch", "pkg" to pkg)
     fun mode(id: String) = send("mode", "id" to id)
     fun console(id: String) = send("console", "id" to id)

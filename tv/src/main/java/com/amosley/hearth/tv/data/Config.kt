@@ -124,6 +124,16 @@ data class HomeConfig(
 }
 
 @Serializable
+data class VoiceConfig(
+    /** TMDB API key (v3 key or v4 read token) used to find which streaming app has a title. */
+    val tmdbKey: String = "",
+    /** Country for streaming availability, ISO 3166-1 (US, CA, GB…). */
+    val region: String = "US",
+    /** Apps you subscribe to, in order of preference. Empty = every installed app. */
+    val preferredApps: List<String> = emptyList(),
+)
+
+@Serializable
 data class PairedRemote(val token: String, val name: String, val pairedAt: Long)
 
 @Serializable
@@ -140,6 +150,7 @@ data class HearthConfig(
     val modes: List<ModeConfig> = DEFAULT_MODES,
     val sports: SportsConfig = SportsConfig(),
     val kids: KidsConfig = KidsConfig(),
+    val voice: VoiceConfig = VoiceConfig(),
     val remotes: List<PairedRemote> = emptyList(),
     /** Bring Hearth back whenever the stock Google TV home appears. */
     val replaceStockHome: Boolean = true,

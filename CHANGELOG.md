@@ -12,6 +12,11 @@ First release of Hearth.
 - One-step setup that grants every permission over ADB
 - Updates itself from GitHub releases without uninstalling, started from the TV, phone or iPad
 
+**Voice control**
+- Say "play Breaking Bad", "watch The Office on Peacock", "open Netflix", "Movie Night", "lights off", "volume 20" or "put on the Eagles game"
+- Finds which of your apps has a show (TMDB, using your free key) and opens that app's search for it. Continue Watching items resume directly
+- Mic button and a "Voice" home-screen shortcut on the phone, Voice button on the iPad, and a Siri Shortcut ("Hey Siri, Hearth")
+
 **Phone remote**
 - Finds the TV automatically and pairs once with a code
 - D-pad, volume, transport, Modes, keyboard, apps and Home Assistant controls

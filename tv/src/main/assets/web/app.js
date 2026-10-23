@@ -62,6 +62,7 @@ function onMessage(m) {
     case 'pair_failed': S.pairError = m.reason || 'Try again'; render(); break;
     case 'state': S.st = m.state; S.paired = true; scheduleRender(); break;
     case 'toast': toast(m.text); break;
+    case 'voice_result': { const r = $('#voice-reply'); if (r) r.textContent = m.reply; break; }
   }
 }
 
@@ -157,7 +158,7 @@ function remoteTab(st) {
         holdButton({}, 'vol_down', '−'),
         h('button', { class: 'mute' + (st.muted ? ' on' : ''), onclick: () => send({ t: 'key', key: 'mute' }) }, '◀'))),
     h('div', { class: 'row5' },
-      keyBtn('Back', 'back'), keyBtn('Home', 'home'), keyBtn('Search', 'search'),
+      keyBtn('Back', 'back'), keyBtn('Home', 'home'), h('button', { class: 'btn', onclick: openVoice }, 'Voice'),
       h('button', { class: 'btn', onclick: () => setTab('apps') }, 'Keyboard'), keyBtn('Inputs', 'inputs')),
     h('div', { class: 'row4' },
       keyBtn('−10s', 'skip_back'), h('button', { class: 'btn paper', onclick: () => send({ t: 'key', key: 'play_pause' }) }, st.nowPlaying && st.nowPlaying.playing ? 'Pause' : 'Play'),
@@ -289,6 +290,37 @@ function homeTab(st) {
 function camUrl(entity) { return '/api/camera?token=' + encodeURIComponent(S.token) + '&entity=' + encodeURIComponent(entity) + '&t=' + Date.now(); }
 setInterval(() => { const img = $('#camimg'); if (img && S.st && S.st.home) { const n = new Image(); n.onload = () => { img.src = n.src; }; n.src = camUrl(S.st.home.cameraEntity); } }, 1500);
 
+// ---------- Voice ----------
+function openVoice() {
+  closeVoice();
+  const input = h('input', { class: 'kbd-input', placeholder: 'Say or type: play Breaking Bad · lights off · Movie Night', autocomplete: 'off' });
+  const reply = h('div', { id: 'voice-reply', class: 'meta', style: { minHeight: '22px' } }, '');
+  const go = () => { const q = input.value.trim(); if (!q) return; send({ t: 'voice', text: q }); reply.textContent = 'Working on it…'; input.value = ''; };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  const listenBtn = SR ? h('button', { class: 'btn', style: { padding: '0 18px' }, onclick: () => listen() }, '🎤 Listen') : null;
+  function listen() {
+    try {
+      rec = new SR(); rec.lang = navigator.language || 'en-US'; rec.interimResults = true;
+      rec.onresult = e => { input.value = Array.from(e.results).map(r => r[0].transcript).join(''); if (e.results[e.results.length - 1].isFinal) go(); };
+      rec.onerror = () => { reply.textContent = 'Use the microphone on the keyboard to dictate.'; input.focus(); };
+      rec.start(); reply.textContent = 'Listening…';
+    } catch { input.focus(); }
+  }
+  const sheet = h('div', { id: 'voice', style: { position: 'fixed', inset: 0, background: 'rgba(7,8,12,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+      onclick: e => { if (e.target.id === 'voice') closeVoice(); } },
+    h('div', { class: 'panel', style: { width: 'min(640px, 92vw)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' } },
+      h('div', { class: 'h1' }, 'Talk to the TV'),
+      h('div', { class: 'meta' }, SR ? 'Tap Listen, or dictate with the keyboard microphone.' : 'Tap the microphone on the keyboard to dictate, then Go.'),
+      input, reply,
+      h('div', { style: { display: 'flex', gap: '10px' } }, listenBtn, h('button', { class: 'btn paper', style: { padding: '0 28px' }, onclick: go }, 'Go'),
+        h('button', { class: 'btn', style: { padding: '0 22px' }, onclick: closeVoice }, 'Close'))));
+  document.body.append(sheet);
+  setTimeout(() => { if (SR) listen(); else input.focus(); }, 50);
+}
+function closeVoice() { const v = $('#voice'); if (v) v.remove(); }
+
 // ---------- Pairing ----------
 function pairView() {
   const cells = Array.from({ length: 6 }, (_, i) => h('input', { inputmode: 'numeric', maxlength: 1, 'aria-label': 'Digit ' + (i + 1) }));
@@ -314,6 +346,7 @@ async function loadSettings() {
     const [cfg, apps, inputs, ents, leagues] = await Promise.all([
       api('/api/config').then(r => r.json()), api('/api/apps').then(r => r.json()), api('/api/inputs').then(r => r.json()),
       api('/api/ha/entities').then(r => r.json()).catch(() => []), api('/api/leagues').then(r => r.json())]);
+    cfg.voice ??= { tmdbKey: '', region: 'US', preferredApps: [] }; cfg.voice.preferredApps ??= [];
     S.cfg = cfg; S.meta = { apps, inputs, entities: ents, leagues, teams: S.meta.teams || {} }; S.cfgDirty = false;
     if (!S.meta.teams[S.teamLeague]) loadTeams(S.teamLeague);
   } catch (e) { toast('Couldn\'t load settings'); }
@@ -410,6 +443,23 @@ function settingsTab() {
     text(c, 'tvName', 'TV name'), text(c, 'adultName', 'Your name'),
     bool(c, 'replaceStockHome', 'Replace Google TV home'), bool(c, 'askProfileOnWake', 'Ask who\'s watching on wake'),
     bool(c, 'autoUpdate', 'Auto-install updates overnight'), select(c, 'mediaLibraryPkg', 'Media library app', appOpts),
+
+    h('h2', null, 'Voice'),
+    h('div', { class: 'meta', style: { fontSize: '13px' } }, 'To find which app has a show, Hearth uses TMDB. Get a free key at themoviedb.org › Settings › API, and paste the API key (or the read access token) here.'),
+    text(c, 'voice.tmdbKey', 'TMDB key', { autocapitalize: 'off' }),
+    select(c, 'voice.region', 'Streaming country', ['US', 'CA', 'GB', 'AU', 'IE', 'NZ', 'DE', 'FR', 'ES', 'IT', 'MX', 'BR', 'IN'].map(x => [x, x])),
+    h('div', { class: 'section-label', style: { margin: '10px 0 4px' } }, 'Apps you subscribe to (first = preferred)'),
+    listEditor(c.voice.preferredApps, (pkg, i) => select(c.voice.preferredApps, String(i), 'App', appOpts), () => '', 'Add app'),
+    h('div', { class: 'item' },
+      h('b', null, 'Siri / Shortcuts (iPad, iPhone)'),
+      h('ol', { style: { margin: '8px 0', paddingLeft: '20px', lineHeight: 1.6, fontSize: '14px' } },
+        h('li', null, 'Open the Shortcuts app › + › name it "Hearth".'),
+        h('li', null, 'Add action "Dictate Text".'),
+        h('li', null, 'Add action "URL" with the address below, then put the Dictated Text variable at the end.'),
+        h('li', null, 'Add action "Get Contents of URL", then "Show Result".'),
+        h('li', null, 'Say "Hey Siri, Hearth", then "play Breaking Bad".')),
+      (() => { const u = `http://${location.host}/api/voice?token=${S.token}&q=`; const i = h('input', { value: u, readonly: true }); i.addEventListener('focus', () => i.select());
+        return h('div', { style: { display: 'flex', gap: '8px' } }, i, h('button', { class: 'pill', onclick: () => { navigator.clipboard?.writeText(u).then(() => toast('Copied')).catch(() => { i.focus(); }); } }, 'Copy')); })()),
 
     h('h2', null, 'Dock (favourites)'),
     listEditor(c.favorites, (pkg, i) => select(c.favorites, String(i), 'App', appOpts), () => '', 'Add app'),

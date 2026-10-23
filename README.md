@@ -69,6 +69,25 @@ The settings editor is easiest from the iPad or a computer browser: `http://<tv-
 
 See [docs/SETUP.md](docs/SETUP.md) for details, permissions and troubleshooting.
 
+## Voice control
+
+Speak to the TV from the phone (mic button, or the **Voice** shortcut: long-press the Hearth Remote icon), the iPad (**Voice**), or Siri. Examples:
+
+| Say | Hearth does |
+| --- | --- |
+| "play Breaking Bad" | Resumes it if it's in Continue Watching. Otherwise looks up which of your apps streams it and opens that app's search for it |
+| "watch The Office on Peacock" | Opens Peacock's search for it |
+| "open Netflix" | Opens the app |
+| "put on the Eagles game" | Opens the app that carries the live game |
+| "Movie Night" / "end Movie Night" | Runs or ends a Mode |
+| "lights off", "dim the lights", "lights to 40 percent" | Home Assistant lights |
+| "volume 20", "mute", "pause", "skip ahead" | TV controls |
+| "switch to PS5", "HDMI 2" | Console or input |
+
+To pick the right app, Hearth needs a free [TMDB](https://www.themoviedb.org/settings/api) API key. Add it in Settings › Voice (iPad or browser), along with the apps you subscribe to. Without a key, "play …" opens Google TV's own search. Some apps only open to their home screen or search page rather than the episode itself.
+
+**Siri:** Settings › Voice shows the exact address to use in a Shortcut (Dictate Text → URL → Get Contents of URL). The endpoint is `GET http://<tv-ip>:8765/api/voice?token=<token>&q=<words>`.
+
 ## Releasing a new version
 
 Releases are automatic. Add a new section at the **top** of `CHANGELOG.md` and push it to `main`:
