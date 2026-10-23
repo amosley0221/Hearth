@@ -36,7 +36,7 @@ class TvUpdater(private val app: HearthApp) {
     fun install() = app.scope.launch {
         val rel = github.check() ?: return@launch
         if (rel.code <= BuildConfig.VERSION_CODE) return@launch
-        if (app.adb.connected || app.adb.connect()) {
+        if (app.adb.connected || (app.adb.previouslyApproved && app.adb.connect())) {
             // Download through the shared updater's cache, then pm install -r via ADB (no prompt).
             val apk = download(rel.apkUrl, rel.version)
             if (apk != null && app.adb.install(apk)) return@launch

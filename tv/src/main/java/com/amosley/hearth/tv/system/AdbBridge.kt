@@ -50,6 +50,7 @@ class AdbBridge(private val context: Context) {
                 if (!r.output.contains("hearth")) error("unexpected shell reply")
                 dadb = d
                 _status.value = "connected"
+                context.getSharedPreferences("adb", Context.MODE_PRIVATE).edit().putBoolean("approved", true).apply()
                 true
             } catch (e: Exception) {
                 Log.i(TAG, "ADB unavailable: ${e.message}")
@@ -61,6 +62,9 @@ class AdbBridge(private val context: Context) {
     }
 
     val connected get() = _status.value == "connected"
+
+    /** True once the owner has completed the one-step setup; only then do we reconnect on our own. */
+    val previouslyApproved get() = context.getSharedPreferences("adb", Context.MODE_PRIVATE).getBoolean("approved", false)
 
     suspend fun shell(cmd: String): String? = withContext(Dispatchers.IO) {
         val d = dadb ?: return@withContext null

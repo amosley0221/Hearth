@@ -23,8 +23,9 @@ class InputController(private val app: HearthApp) {
     @Volatile var hearthKeySink: ((Int) -> Unit)? = null
 
     fun start() {
-        // Try ADB quietly at start-up; it only succeeds if the owner already allowed Hearth.
-        app.scope.launch { app.adb.connect(waitForApproval = false) }
+        // Reconnect ADB at start-up only after the owner chose it in Settings, so the TV never
+        // shows an unexpected "Allow USB debugging?" prompt.
+        if (app.adb.previouslyApproved) app.scope.launch { app.adb.connect(waitForApproval = false) }
     }
 
     fun key(k: String) = app.scope.launch { handle(k) }

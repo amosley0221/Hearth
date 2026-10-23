@@ -59,6 +59,8 @@ fun RemoteRoot() {
     val wide = LocalConfiguration.current.screenWidthDp >= 600
     var tab by rememberSaveable { mutableStateOf(if (wide) "now" else "remote") }
     var kbSerial by remember { mutableIntStateOf(0) }
+    // The pad is always visible when unfolded, so "Remote" maps to the Now pane there.
+    if (wide && tab == "remote") tab = "now"
 
     BackHandler(showSettings || basicPairing) { showSettings = false; basicPairing = false }
 
